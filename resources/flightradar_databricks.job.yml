@@ -1,0 +1,33 @@
+# The main job for flightradar_databricks.
+resources:
+  jobs:
+    flightradar_databricks_job:
+      name: flightradar_databricks_job
+
+      trigger:
+        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
+        periodic:
+          interval: 1
+          unit: DAYS
+
+      #email_notifications:
+      #  on_failure:
+      #    - your_email@example.com
+
+      tasks:
+      
+        - task_key: refresh_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.flightradar_databricks_pipeline.id}
+
+      # A list of task execution environment specifications that can be referenced by tasks of this job.
+      environments:
+        - environment_key: default
+
+          # Full documentation of this spec can be found at:
+          # https://docs.databricks.com/api/workspace/jobs/create#environments-spec
+          # https://docs.databricks.com/aws/en/release-notes/serverless/environment-version/
+          spec:
+            environment_version: "3"
+            dependencies:
+              - ../dist/*.whl

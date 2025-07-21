@@ -1,0 +1,45 @@
+# This is a Databricks asset bundle definition for flightradar_databricks.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: flightradar_databricks
+  uuid: a621707a-5565-44c8-83b3-c13ed8c11e58
+
+variables:
+  user_email:
+    description: "User email for Databricks workspace"
+
+artifacts:
+  python_artifact:
+    type: whl
+    build: uv build --wheel
+
+include:
+  - resources/*.yml
+  - resources/*/*.yml
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-52da6222-372a.cloud.databricks.com
+
+  staging:
+    mode: production
+    workspace:
+      host: https://dbc-52da6222-372a.cloud.databricks.com
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-52da6222-372a.cloud.databricks.com
+      # We explicitly deploy to make sure we only have a single copy.
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: ${var.user_email}
+        level: CAN_MANAGE
